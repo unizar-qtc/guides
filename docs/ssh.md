@@ -5,7 +5,7 @@ To remotely connect to the clusters and desktop computers is advised to use
 
 
 ## Hosts
-Directions (DNS/IP addresses) for the BIFI's access point computers.
+Directions (DNS/IP addresses) for the BIFI's access point computers. Only *bridge* can be access from non-unauthorized IPs.
 
 |  HOST NAME |       DIRECTION        |
 | :--------: | ---------------------- |
@@ -36,7 +36,7 @@ The command `scp` has an analogous behaviour to `cp` but trough ssh connections.
 Send / Receive:
 ```
 scp {file} {user}@{host}:{destination}
-scp {user}@{host}:{file} {distination}
+scp {user}@{host}:{file} {destination}
 ```
 
 The files and folders paths can be given in absolute or relative directions. In the latter case, by default the remote directory is your `$HOME`.
@@ -47,7 +47,7 @@ Examples: `scp usuario@memento.bifi.unizar.es:my_calcs/calc.log .`\
 #### Graphical clients
 Some desktop applications can offer a more friendly experience with remote file/folder management. Among the freely available, [FileZilla](https://filezilla-project.org/) for Linux and [WinSCP](https://winscp.net/) for Windows are suggested. Tunneling to access *memento*/*cierzo* can be set in the latter.
 
-## Advanced usage
+## Advanced features
 These advanced features are only available for Linux (and WSL).
 
 #### *config* file
@@ -77,7 +77,7 @@ After this *config* is set, the alias defined after `Host` can be used to connec
 #### Log in without password
 Public keys can be avoid entering a password at every connection. It's important to set this **only in a restricted personal account**, as can it will facilitate any unauthorized access.
 
-To generate a public/private RSA key pair, type `ssh-keygen` (default options are usually OK)\
-To copy the public key to the remote server, use `ssh-copy-id {user}@{host}`
+1. Generate a public/private RSA key pair, type `ssh-keygen` (default options are usually OK)
+2. Copy the public key to the remote server, use `ssh-copy-id {user}@{host}`
 
 After that, the entering password step will be skipped. For the tunnel, it may be necessary to generate a key at *bridge* and copy it to *memento*/*cierzo*.
