@@ -1,0 +1,376 @@
+https://cac.queensu.ca/wiki/index.php/HowTo:gaussian:release
+
+Gaussian 16 A.03 Notes
+======================
+
+Usage Notes:
+
+1.  Use of the current generation of NVIDIA GPUs is supported for Hartree-Fock
+    and DFT calculations.   Refer to the performance notes for details.
+
+2.  Parallel performance on larger numbers of processors has been improved.
+    Refer to the performance notes for details and how to get optimal
+    performance on multiple CPUs, clusters, and GPUs.
+
+3.  The parameters which are specified in link-0 (%) input lines and/or
+    in a Default.Route file can now also be specified via either command-line
+    arguments or environment variables.  Details are in the input notes.
+
+4.  There are new tools for interfacing Gaussian with other programs both
+    in compiled languages such as Fortran and C and with interpreted
+    languages such as Python and Perl.  Refer to the interfacing notes
+    for details.
+
+Changes in Defaults between Gaussian 09 and Gaussian 16:
+
+1.  The follow defaults are different in Gaussian 16:
+
+    a.  Integral accuracy is 10^-12 rather than 10^-10 in G09
+
+    b.  The default DFT grid for general use is UltraFine rather than
+        FineGrid in G09; the default grid for CPHF is SG1 rather than
+        CoarseGrid.
+    c.  SCRF defaults to the symmetric form of IEFPCM (not present in G09)
+        rather than the non-symmetric version.
+
+    d.  Physical constants use the 2010 values rather than the 2006 values
+        in G09.
+
+    The G09Defaults route keyword sets the defaults back to the G09 values
+    for compatibility with previous calculations, but the new defaults are
+    strongly recommended for new studies.
+
+2.  Gaussian 16 defaults memory usage to %mem=100mw.  Even larger values are
+    appropriate for calculations on larger molecules and when using many
+    processors; refer to the performance notes for details.
+
+3.  TDDFT frequency calculations do analytic second derivatives by default,
+    since these are much faster than the numerical derivatives which were
+    the only choice in G09.
+
+
+------------------------------------------------------------------------
+
+                Building Gaussian 16 from Source Code
+
+1.  By default, the build on x86 and x86_64 machines builds for the
+    current CPU type (or the closest supported CPU), uses the current
+    level 3 cache size and does not include support for GPUs.  A
+    specific CPU type can be specified as an argument to the build
+    script, e.g.
+    bsd/bldg16 all sandybridge
+
+    to build executables compiled for Intel sandybridge and later processors
+    even if the current machine is a different type of x86_64.  Similarly,
+
+    bsd/bldg16 all gpu
+
+    will build with NVIDIA k40 and k80 GPU support and the current type of
+    x86_64 processor or use
+
+    bsd/bldg16 all gpu sandybridge
+
+    to turn on both gpu support and a particular CPU type.
+
+    By default, the build scripts check the size of level 3 cache on
+    each chip and the number of CPUs per chip and set the parameter
+    for the amount of cache each thread should try to use as
+    L3 size divided by number of CPUs.  If the executables are being built on
+    one type of systems but will be used primarily on a different
+    machine, then before building one should set the CACHESIZE environment
+    variable to the amount of cache in bytes that each CPU/thread should
+    use.
+
+    On x86_64 machines the supported machine types are:
+
+    ia32p4       (32-bit pentium)
+    amd64        (legacy AMD machines)
+    em64t        (legacy Intel x86_64 machines)
+    istanbul     (less old AMD machines)
+    nehalem      (less old Intel machines)
+    sandybridge  (Intel Sandybridge machines)
+    haswell      (Intel Haswell and Broadwell machines)
+
+    For IBM Power 8 under Linux the option is:
+    ibmp8le      (Little-endian Power 8 linux)
+    (The default is Big-endian Linux)
+
+    For NEC the option is:
+    necsxace     (Ace machine)
+
+2.  Building Gaussian 16 with Linda requires Linda version 9.0; the
+    executables will build but will not function with previous version of Linda.
+    The linda 9.0 file should be un-tarred into the g16 directory, then the
+    bsd/fixlinda script should be run to set paths and soft links appropriately
+    and then the linda executables can be built with "mg linda".
+
+3.  Building on Intel Macs requires a case-sensitive file system.
+
+------------------------------------------------------------------------
+
+                     Input Notes
+
+Most options that control how Gaussian 16 operates can be specified in
+any of 4 ways.  From highest to lowest precedence these are:
+
+1.  As link0 input (%-lines).  This is the usual method to control
+    a specific job and the only way to control a specific step
+    within a multi-step input file.
+
+2.  As options on the command line.  This is useful when one wants
+    aliases or other shortcuts for different common ways of running
+    the program.
+
+3.  As environment variables.  This is most useful in standard scripts,
+    for example for generating and submitting jobs to batch queuing
+    systems.
+
+4.  As lines in a Default.Route file.  This is most useful when one
+    wants to change the program defaults for all jobs.
+
+When searching for a Default.Route file the current default directory
+is checked first and then the directories in the path for G16
+executables (environment variable GAUSS_EXEDIR, which normally
+points to $g16root/g16).
+
+The parameters which control defaults for Gaussian jobs are:
+
+Input line          Command Line  Environment Variable  Default.Route  Meaning
+----------          ------------  --------------------  -------------  -------
+
+%cpu=...            -c="..."      GAUSS_CDEF "..."      -C- ...        which CPUs to use
+%gpucpu=...         -g="..."      GAUSS_GDEF "..."      -G- ...        which GPUs to use and bind to which CPUs.
+%usersh             -s="rsh"      GAUSS_SDEF "rsh"      -S- rsh        Linda should use rsh to start workers
+%usessh             -s="ssh"      GAUSS_SDEF "ssh"      -S- ssh        Linda should use ssh to start workers
+%lindaworkers=...   -w="..."      GAUSS_WDEF "..."      -W- ...        which nodes to use with Linda
+                    -r="..."      GAUSS_RDEF "..."      -R- ...        defaults for route
+                    -h="..."      GAUSS_HDEF "..."      -H- ...        hostname for archive entry
+                    -o="..."      GAUSS_ODEF "..."      -O- ...        organization/site for archive entry
+
+The parameters which control defaults for Gaussian utility programs are:
+
+                                  GAUSS_FDEF "..."      -F- ...        default type for formchk (-c, -3, etc.)
+                                  GAUSS_UDEF "..."      -U- ...        default memory size for utilities.
+
+There are also parameters which are primarily useful when running
+Gaussian from scripts or external programs:
+
+#                   -x="..."      GAUSS_XDEF "..."                     complete route for job (no route section
+                                                                       will be read from the input file).
+%chk=               -y="..."      GAUSS_YDEF "..."                     checkpoint file for job.
+%rwf=               -z="..."      GAUSS_ZDEF "..."                     read-write file for job.
+
+Note that the quotation marks are normally required for the command
+line and environment variables, to avoid modification of the
+parameter string by the shell.
+
+The deprecated parameters %nprocshared and %nproclinda can also be
+defaulted (flagged by P and L, respectively).
+
+------------------------------------------------------------------------
+
+                Parallel Usage and Performance Notes
+
+I.  Shared-memory parallelism
+
+    1.  Calculations involving larger molecules and basis sets benefit
+        from larger memory allocations.  4GBytes or more per processor is
+        recommended for calculations involving 50 or more atoms and/or 500
+        or more basis functions.  The freqmem utility estimates the
+        optimal memory size per thread for ground-state frequency
+        calculations and the same value is reasonable for excited-state
+        frequencies and is more than sufficient for ground and excited
+        state optimizations.
+
+        The amount of memory allowed should rise with the number of
+        processors:  if 4GByte is reasonable for one processor, then
+        the same job using 8 CPUs would run well in 32 GBytes.  Of
+        course, there may be limitations to smaller values imposed by
+        the particular hardware, but scaling memory linearly with
+        number of CPUs should be the goal.  In particular, increasing
+        only the number of CPUs with fixed memory size is unlikely to
+        lead to good performance when using large numbers of processors.
+
+        For large frequency calculations and for large CCSD and EOM-CCSD
+        energies, it is also desirable to leave enough memory to buffer
+        the large disk files involved.  So a Gaussian job should only be
+        given 50-70% of the total memory on the system.  For example, on
+        a machine with a total of 128 GBytes, one should typically give
+        64-80 GBytes to a job which was using all the CPUs and leave the
+        remaining memory for the operating system to use as disk cache.
+
+    2.  Efficiency is lost when threads are moved from one CPU to another,
+        thereby invalidating the cache and causing other overhead.  On
+        most machines Gaussian can tie threads to specific CPUs and this
+        is the recommended mode of operation, especially when using larger
+        numbers of processors.  The %cpu link0 line specifies the numbers
+        of specific CPUs to be used.  Thus on a machine with one 8-core
+        chip one should use %cpu=0-7 rather than %nproc=8 because the
+        former ties the first thread to CPU 0, the next to CPU 1, etc.
+
+        On some older Intel processors (Nehalem and before) there is not
+        enough memory bandwidth to keep all the CPUs on a chip busy and
+        it is often preferable to use half the CPUs, each with twice
+        as much memory as if all were used.  For example, on such a
+        machine with 4 12-core chips and 128 GBytes of memory, with
+        CPUs 0-11 on the first chip, 12-23 on the second, etc., it is
+        better to run using 24 processors (6 on each chip) and give them
+        72/24=3GByte memory each, rather than use all 48 with only 1.5GBytes
+        of memory each.  The input would be
+
+        %mem=72GB
+        %cpu=0-47/2
+
+        where the /2 means to use every other core, i.e. cores 0, 2, 4, 6,
+        8, and 10 (on chip 0), 12, 14, 16, 18, 20, and 22 (on chip 1), etc.
+
+        With the most recent generations of Intel processors (Haswell and
+        later) the memory bandwidth is better and using all the cores
+        on each chip works well.
+
+    3.  As long as sufficient memory is available and threads are tied to
+        specific cores, then parallel efficiency on large molecules is good
+        up to 64 or more cores.
+    4.  Hyperthreading is not useful for Gaussian since it effectively divides
+        resources such as memory bandwidth among threads on the same physical
+        CPU.  If hyperthreading cannot be turned off, Gaussian jobs should
+        use only one hyperthread on each physical CPU.  Under Linux, hyperthreads
+        on different processors are grouped together.  That is, if a machine
+        has 2 chips each with 8 cores and 3-way hyperthreading, then "CPUs"
+        0-7 are across the 8 cores on chip 0, 8-15 are across the 8 cores on
+        chip 1, then 16-23 are the second hyperthreads on the 8 cores of chip 0,
+        etc.  So a job would run best with %cpu=0-15.
+
+        Under AIX, hyperthreads are grouped together with up 8
+        hyperthread numbers for each CPU even if fewer hyperthreads
+        are in use, so with 2 8 core chips and 4-way hyperthreading,
+        "CPUs" 0-3 are all on core 0 of chip 0, 8-11 are on core 1 of
+        chip 0, etc.  So one would want to use %cpu=0-127/8 to select
+        "CPUs" 0, 8, 16, etc. which are each using a distinct core.
+
+II.  Cluster (Linda) parallelism
+
+    1.  Hartree-Fock and DFT energies, gradients and frequencies run
+        in parallel across clusters as do MP2 energies and gradients.
+        MP2 frequencies, CCSD, and EOM-CCSD energies and optimizations
+        are SMP parallel but not cluster parallel.  Numerical
+        derivatives such as DFT Anharmonic frequencies and CCSD
+        Frequencies, are parallelized across nodes of a cluster by
+        doing complete gradient or second derivative calculation on
+        each node, splitting the directions of differentiation across
+        workers in the cluster.
+    2.  Shared-memory and cluster parallelism can be combined.
+        Generally, one uses shared-memory parallelism across all CPUs
+        in each node of the cluster.  Note that %cpu and %mem apply to
+        each node of the cluster.  Thus if one has 3 nodes names a, b,
+        and c, each with 2 chips which have 8 CPUs each, then one
+        might specify
+
+        %mem=64gb
+        %cpu=0-15
+        %lindaworkers=a,b,c
+        #p b3lyp/6-31g* freq
+
+        This would run 16 threads, each pinned to a CPU, on each of the 3 nodes,
+        giving 4Gbytes to each of the 48 threads.
+
+    3.  For the special case of numerical differentiation (Freq=Anharm, CCSD Freq, etc.)
+        only, one extra worker is used to collect the results.  So these jobs should be run
+        with two workers on the master node (where g16 is started).  For the above
+        example if the job was doing anharmonic frequencies, then one would do
+
+        %mem=64gb
+        %cpu=0-15
+        %lindaworkers=a:2,b,c
+        #p b3lyp/6-31g* freq=anharm
+
+        where g16 is assumed to be started on node a.  This will start 2 workers on
+        node a, one of which just collects results, and will do the computational
+        work using the other worker on a and those on b and c.
+III.  Using GPUs.
+
+    1.  Gaussian 16 can use NVIDIA K40 and K80 GPUs under Linux.  Earlier GPUs do
+        not have the computational capabilities or memory size to run the algorithms
+        in G16.  Allowing larger amounts of memory is even more important when using
+        GPUs than for CPUs, since larger batches of work must be done at the same
+        time in order to use the GPUs efficiently.  The K40 and K80 can have up to
+        16 GBytes of memory and one typically tries to have most of this available
+        for Gaussian, which requires at least an equal amount of memory for the CPU
+        thread which is running each GPU.  8 or 9 GBytes works well if there is
+        12 GByte total on each GPU, or 11-12 GBytes for a 16GByte GPU.
+
+    2.  When using GPUs it is essential to have the GPU controlled by a specific
+        CPU and much preferable if the CPU is physically close to the GPU it is
+        controlling.  The hardware arrangement can be checked using the nvidia-smi
+        utility.  For example, this output is for a machine with 2 16-core Haswell
+        CPU chips and 4 K80 boards, each of which has two GPUs:
+
+             GPU0 GPU1 GPU2 GPU3 GPU4 GPU5 GPU6 GPU7 CPU Affinity
+        GPU0  X    PIX  SOC  SOC  SOC  SOC  SOC  SOC    0-15
+        GPU1  PIX   X   SOC  SOC  SOC  SOC  SOC  SOC    0-15
+        GPU2  SOC  SOC   X   PIX  PHB  PHB  PHB  PHB   16-31
+        GPU3  SOC  SOC  PIX   X   PHB  PHB  PHB  PHB   16-31
+        GPU4  SOC  SOC  PHB  PHB   X   PIX  PXB  PXB   16-31
+        GPU5  SOC  SOC  PHB  PHB  PIX   X   PXB  PXB   16-31
+        GPU6  SOC  SOC  PHB  PHB  PXB  PXB   X   PIX   16-31
+        GPU7  SOC  SOC  PHB  PHB  PXB  PXB  PIX   X    16-31
+
+       The important part is the CPU affinity.  This shows that GPUs 0 and 1 (on the
+        first K80 card) are connected to the CPUs on chip 0 while GPUs 2-7 (on the
+        other three K80 cards) are connected to the CPUs on chip 1.  So a job which
+        uses all the CPUs (24 CPUs doing parts of the computation and 8 controlling
+        GPUs) would use input
+
+        %cpu=0-31
+        %gpucpu=0-7=0-1,16-21
+
+        or equivalently but more verbosely
+
+        %cpu=0-31
+        %gpucpu=0,1,2,3,4,5,6,7=0,1,16,17,18,19,20,21
+
+        This pins threads 0-31 to CPUs 0-31 and then uses GPU0 controlled by
+        CPU 0, GPU1 controlled by CPU 1, GPU2 controlled by CPU 16, etc.
+
+        Normally one uses consecutive numbering in the obvious way, but things
+        can be associated differently in special cases.  For example, suppose on the
+        other machine one already had one job using 6 CPUs running with %cpu=16-21.
+        Then if one wanted to use the other 26 CPUs with 8 controlling GPUs one
+        would specify:
+
+        %cpu=0-15,22-31
+        %gpucpu=0-7=0-1,22-27
+
+        This would create 26 threads with GPUs controlled by the threads on
+        CPUs 0,1,22,23,24,25,26, and 27.
+
+    3.  GPUs are not helpful for small jobs but are effective for
+        larger molecules when doing DFT energies, gradients and
+        frequencies (for both ground and excited states).  They are
+        not used effectively by post-SCF calculations such as MP2 or
+        CCSD.
+
+        Each GPU is several times faster than a CPU but since on
+        modern machines there are typically many more CPUs than GPUs,
+        it is important to use all the CPUs as well as the GPUs and
+        the speedup from GPUs is reduced because many CPUs are also
+        used effectively (i.e., in a job which uses all the CPUs and
+        all the GPUs).  For example, if the GPU is 5x faster than a
+        CPU, then the speedup from going to 1 CPU to 1 CPU + 1 GPU
+        would be 5x, but the speedup going from 32 CPUs to 32 CPUs + 8
+        GPUs would be 32 CPUs -> 24 CPUs + 8 GPUs, which would be
+        equivalent to 24 + 5x8 = 64 CPUs, for a speedup of 64/32 or
+        2x.
+
+    4.  GPUs on nodes in a cluster can be used.  Since the %cpu and %gpucpu specifications
+        are applied to each node in the cluster, the nodes must have identical configurations
+        (number of GPUs and their affinity to CPUs); since most clusters are collections of
+        identical nodes, this is not usually a problem.
+
+IV.  CCSD, CCSD(T) and EOM-CCSD calculations
+
+     These calculations can use memory to avoid I/O and will run much more efficiently
+     if they are allowed enough memory to store the amplitudes and product vectors in
+     memory.  If there are O active occupied orbitals (NOA in the output) and V
+     virtual orbitals (NVB in the output) then approximately 9O^2V^2 words of memory
+     are required.  This does not depend on the number of processors used.
