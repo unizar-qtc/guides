@@ -58,16 +58,18 @@ Template *config* file. Replace the *{user}* with your remote user name.
  Host bridge
    HostName bridge.bifi.unizar.es
    User {user}
-   ForwardX11 no
 
  Host memento
    ProxyCommand ssh -q bridge nc -q0 memento.bifi.unizar.es 22
    User {user}
-   ForwardX11 no
 
  Host cierzo
    ProxyCommand ssh -q bridge nc -q0 cierzo.bifi.unizar.es 22
    User {user}
+
+ Host *
+   ServerAliveInterval 60
+   ServerAliveCountMax 10000
    ForwardX11 no
 ```
 
