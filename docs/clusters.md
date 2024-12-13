@@ -5,45 +5,39 @@ The BIFI institute has one main HPC clusters (aka *supercomputers*) under the ma
 
 ## Infrastructure
 
-|                  |  *~~MEMENTO~~*  |  *~~CIERZO~~*  |  *AGUSTINA*  |
-| :--------------: | :---------: | :--------: | :----------: |
-| year             |    ~~2011~~     |    2014    |     2023     |
-| | | |
-| TFLOPS (Rmax)    |  ~~20~~  |  ~~80~~  |  510  |
-| | | |
-| CPU arch         |  ~~x86_64~~  |  ~~x86_64~~  |  x86_64  |
-| brand            |  ~~AMD~~  |  ~~Intel~~  |  AMD  |
-| model            |  ~~Opteron 6272~~  |  ~~Xeon E5-2680v3~~  |  EPYC 7513  |
-| freq             |  ~~2.1 GHz~~  |  ~~2.5 GHz~~  |  2.6 GHz  |
-| SIMD extensions  |  ~~SSE4.2 AVX~~  |  ~~SSE4.2 AVX AVX2~~  |  SSE4.2 AVX AVX2  |
-| # physical cores |  ~~8~~  |  ~~12~~  |  32  |
-| # threads        |  ~~16~~  |  ~~12~~  |  32  |
-| sockets/node     |  ~~4~~  |  ~~2~~  |  2  |
-| cores/node       |  ~~64~~  |  ~~24~~  |  64  |
-| # nodes          |  ~~47~~  |  ~~70~~  |  96  |
-| # cores total    |  ~~3008~~  |  ~~1680~~  |  6144  |
-| | | |
-| memory arch      |  ~~shared~~  | ~~distributed~~  |  distributed  |
-| RAM              |  ~~DDR3~~  |  ~~DDR4 ECC REG~~  | |
-| freq             |  ~~667 MHz~~  |  ~~2133 MHz~~  | |
-| mem/node         |  ~~-~~  |  ~~64 GB~~  |  256 GB  |
-| # mem total      |  ~~12 TB~~  |  ~~-~~  |  -  |
-| | | |
-| InfiniBand       |  ~~QDR 40Gbps~~  |  ~~FDR  56Gbps~~  | |
-| ethernet         |  ~~10 GbE~~  |  ~~10 GbE~~  | |
-| | | |
-| storage          |  ~~56 TB~~  |  ~~288 TB (LUSTRE)~~  |  600 TB (LUSTRE)  |
-| | | |
-| OS               |  ~~Scientific Linux 6.3~~  |  ~~Scientific Linux 6.6~~  |  Rocky Linux 8.6  |
-| kernel           |  ~~2.6.32-431.23.3~~  |  ~~2.6.32-504.8.1~~  |  4.18.0-372.9.1  |
+The main cluster, built in 2023 and named *agustina*, is composed by several types of nodes with different hardware specifications. They are accesible through their corresponding queues. Combined, the CPU nodes can deliver a peak performance of 510 TFLOPS.
 
-There are three special nodes at *agustina*: \
- 3- *fat* : with 516GB of RAM
+|                  |  *thin*  |  *fat*  |  *ada*  |  *hopper*  |
+| :--------------: | :------: | :-----: | :-----: | :--------: |
+| # nodes          |  93  |  3  |  9  |  3  |
+| | | | | |
+| CPU arch         |  x86_64  |  x86_64  |  x86_64  |  x86_64  |
+| CPU brand        |  AMD  |  AMD |  INTEL  |  INTEL  |
+| CPU model        |  EPYC 7513  |  EPYC 7513  |  Xeon Gold 6548Y+  |  Platinum 8462Y+  |
+| CPU freq         |  2.6 GHz  | 2.6 GHz  |  2.5 GHz  |  2.8 GHz  |
+| # physical cores |  32  |  32  |  32  |  32  |
+| # threads        |  32  |  32  |  32  |  32  |
+| sockets/node     |  2  |  2  |  2  |  2  |
+| cores/node       |  64  |  64  |  64  |  64  |
+| | | | | |
+| RAM mem/node     |  256 GB  |  512 GB  |  1.5 TB  |  2 TB  |
+| | | | | |
+| # GPUs/node      |  |  |  4  |  4  |
+| GPU brand        |  |  |  NVIDIA  |  NVIDIA  |
+| GPU model        |  |  |  L40S  |  H100  |
+| GPU vmem         |  |  |  48 GB  |  80 GB  |
+
+|                  |  |
+| :--------------: | :--: |
+| OS               |  Rocky Linux 8.6  |
+| kernel           |  4.18.0-372.9.1  |
+| storage          |  ~600 TB (LUSTRE)  |
+| memory arch      |  distributed  |
 
 
 ## Job scheduler
 
-To send a calculation job to the computing nodes, it must be submitted through a manager software that will hold the job waiting in the queue until they requested resources are available.
+To send a calculation job to the computing nodes, it must be submitted through a manager software that will hold the job waiting in the queue until they requested resources are available. The time limit in all the queues is 7 days.
 
 *Agustina* uses [SLURM](https://slurm.schedmd.com/) job scheduler. Here are listed the essentials commands:
 
@@ -55,16 +49,6 @@ To send a calculation job to the computing nodes, it must be submitted through a
 | cancel job    |  scancel \<.job>  |
 
 Useful ready-to-use scripts to launch calculations for the most common programs can be found in this [launchers](https://github.com/unizar-qtc/launchers) repository.
-
-
-### Queues
-
-In *agustina* there are 2 different queues:
-
-|  *AGUSTINA* queue  |  time limit  |  #nodes  |
-| :----------------: | :----------: | :------: |
-|  thin              |  7 days      |  93      |
-|  fat               |  7 days      |  3       |
 
 
 ## Software manager
